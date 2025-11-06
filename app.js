@@ -26,8 +26,6 @@ auth.onAuthStateChanged(user => {
   if (user) {
     document.getElementById("auth").style.display = "none";
     document.getElementById("dashboard").style.display = "block";
-    document.getElementById("listing-form").style.display = "block";
-    document.getElementById("marketplace").style.display = "block";
     document.getElementById("username").textContent = user.displayName;
 
     const userRef = db.collection("users").doc(user.uid);
@@ -40,7 +38,10 @@ auth.onAuthStateChanged(user => {
       }
     });
 
-    loadMarketplace();
+    // Redirect to marketplace after login
+    setTimeout(() => {
+      window.location.href = "marketplace.html";
+    }, 1500);
   }
 });
 
@@ -52,50 +53,6 @@ function topUp(amount) {
   }).then(() => {
     userRef.get().then(doc => {
       document.getElementById("balance").textContent = doc.data().balance;
-    });
-  });
-}
-
-function postListing() {
-  const user = auth.currentUser;
-  const listing = {
-    title: document.getElementById("title").value,
-    price: parseInt(document.getElementById("price").value),
-    type: document.getElementById("type").value,
-    tags: document.getElementById("tags").value.split(",").map(tag => tag.trim()),
-    description: document.getElementById("description").value,
-    sellerId: user.uid,
-    timestamp: Date.now()
-  };
-
-  db.collection("listings").add(listing).then(() => {
-    alert("Listing posted!");
-    document.getElementById("title").value = "";
-    document.getElementById("price").value = "";
-    document.getElementById("type").value = "";
-    document.getElementById("tags").value = "";
-    document.getElementById("description").value = "";
-    loadMarketplace();
-  });
-}
-
-function loadMarketplace() {
-  const container = document.getElementById("listings-container");
-  container.innerHTML = "";
-
-  db.collection("listings").orderBy("timestamp", "desc").get().then(snapshot => {
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      const card = document.createElement("div");
-      card.className = "listing-card";
-      card.innerHTML = `
-        <h3>${data.title} - $${data.price}</h3>
-        <p><strong>Type:</strong> ${data.type}</p>
-        <p><strong>Description:</strong> ${data.description}</p>
-        <p class="tags"><strong>Tags:</strong> ${data.tags.join(", ")}</p>
-        <p><strong>Seller:</strong> ${data.sellerId}</p>
-      `;
-      container.appendChild(card);
     });
   });
 }
