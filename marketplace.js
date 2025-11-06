@@ -12,7 +12,6 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// ✅ Attach toggle button after DOM loads
 document.addEventListener("DOMContentLoaded", () => {
   const toggleBtn = document.getElementById("toggle-listing");
   if (toggleBtn) {
@@ -29,11 +28,10 @@ auth.onAuthStateChanged(user => {
     return;
   }
 
-  document.getElementById("username").textContent = user.displayName;
-
   const userRef = db.collection("users").doc(user.uid);
   userRef.get().then(doc => {
     if (doc.exists) {
+      document.getElementById("username").textContent = doc.data().nickname || doc.data().username;
       document.getElementById("balance").textContent = doc.data().balance;
     }
   });
@@ -75,7 +73,9 @@ function loadMarketplace() {
       card.className = "listing-card";
 
       db.collection("users").doc(data.sellerId).get().then(userDoc => {
-        const sellerName = userDoc.exists ? userDoc.data().username : "Unknown Seller";
+        const sellerName = userDoc.exists
+          ? userDoc.data().nickname || userDoc.data().username
+          : "Unknown Seller";
 
         card.innerHTML = `
           <h3>${data.title} - $${data.price}</h3>
