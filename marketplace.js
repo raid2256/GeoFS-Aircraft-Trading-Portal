@@ -13,31 +13,21 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 document.addEventListener("DOMContentLoaded", () => {
-  const toggleListing = document.getElementById("toggle-listing");
-  const accountBtn = document.getElementById("account-settings-btn");
-  const topupBtn = document.getElementById("topup-toggle-btn");
-
-  if (toggleListing) {
-    toggleListing.addEventListener("click", () => {
-      const form = document.getElementById("listing-form");
-      form.style.display = form.style.display === "none" ? "block" : "none";
-    });
-  }
-
-  if (accountBtn) {
-    accountBtn.addEventListener("click", () => {
-      const panel = document.getElementById("account-settings-panel");
-      panel.style.display = panel.style.display === "none" ? "block" : "none";
-    });
-  }
-
-  if (topupBtn) {
-    topupBtn.addEventListener("click", () => {
-      const panel = document.getElementById("topup-panel");
-      panel.style.display = panel.style.display === "none" ? "block" : "none";
-    });
-  }
+  document.getElementById("toggle-listing").onclick = () => {
+    togglePanel("listing-form");
+  };
+  document.getElementById("account-settings-btn").onclick = () => {
+    togglePanel("account-settings-panel");
+  };
+  document.getElementById("topup-toggle-btn").onclick = () => {
+    togglePanel("topup-panel");
+  };
 });
+
+function togglePanel(id) {
+  const panel = document.getElementById(id);
+  panel.style.display = panel.style.display === "none" ? "block" : "none";
+}
 
 auth.onAuthStateChanged(user => {
   if (!user) {
@@ -64,6 +54,7 @@ function topUp(amount) {
   }).then(() => {
     userRef.get().then(doc => {
       document.getElementById("balance").textContent = doc.data().balance;
+      document.getElementById("topup-panel").style.display = "none";
     });
   });
 }
@@ -85,6 +76,7 @@ function changeNickname() {
     userRef.update({ nickname: newName }).then(() => {
       document.getElementById("username").textContent = newName;
       alert("Nickname updated!");
+      document.getElementById("account-settings-panel").style.display = "none";
     });
   } else {
     alert("Enter a valid nickname.");
@@ -124,6 +116,7 @@ function postListing() {
     document.getElementById("type").value = "";
     document.getElementById("tags").value = "";
     document.getElementById("description").value = "";
+    document.getElementById("listing-form").style.display = "none";
     loadMarketplace();
   });
 }
