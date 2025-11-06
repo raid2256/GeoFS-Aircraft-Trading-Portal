@@ -12,11 +12,6 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-document.getElementById("login-google").onclick = () => {
-  const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider);
-};
-
 document.getElementById("login-github").onclick = () => {
   const provider = new firebase.auth.GithubAuthProvider();
   auth.signInWithPopup(provider);
@@ -24,24 +19,30 @@ document.getElementById("login-github").onclick = () => {
 
 auth.onAuthStateChanged(user => {
   if (user) {
-    document.getElementById("auth").style.display = "none";
-    document.getElementById("dashboard").style.display = "block";
-    document.getElementById("username").textContent = user.displayName;
-
     const userRef = db.collection("users").doc(user.uid);
+
     userRef.get().then(doc => {
-      if (!doc.exists) {
-        userRef.set({ username: user.displayName, balance: 0 });
+      if (!doc.exists || !doc.data().nickname) {
+        const nickname = prompt("Choose a nickname for the marketplace:");
+        userRef.set({
+          username: user.displayName,
+          nickname: nickname,
+          balance: 0
+        });
+        document.getElementById("username").textContent = nickname;
         document.getElementById("balance").textContent = "0";
       } else {
+        document.getElementById("username").textContent = doc.data().nickname;
         document.getElementById("balance").textContent = doc.data().balance;
       }
-    });
 
-    // Redirect to marketplace after login
-    setTimeout(() => {
-      window.location.href = "marketplace.html";
-    }, 1500);
+      document.getElementById("auth").style.display = "none";
+      document.getElementById("dashboard").style.display = "block";
+
+      setTimeout(() => {
+        window.location.href = "marketplace.html";
+      }, 1500);
+    });
   }
 });
 
