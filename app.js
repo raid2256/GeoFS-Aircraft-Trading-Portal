@@ -1,4 +1,3 @@
-// ✅ Your Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCAoqttx9CDHI_Chmlr1D-cm20g3dXxGHw",
   authDomain: "geofs-aircraft-t.firebaseapp.com",
@@ -9,29 +8,26 @@ const firebaseConfig = {
   measurementId: "G-TR3GX4NWZL"
 };
 
-// ✅ Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// ✅ Google login
 document.getElementById("login-google").onclick = () => {
   const provider = new firebase.auth.GoogleAuthProvider();
   auth.signInWithPopup(provider);
 };
 
-// ✅ GitHub login
 document.getElementById("login-github").onclick = () => {
   const provider = new firebase.auth.GithubAuthProvider();
   auth.signInWithPopup(provider);
 };
 
-// ✅ Auth state listener
 auth.onAuthStateChanged(user => {
   if (user) {
     document.getElementById("auth").style.display = "none";
     document.getElementById("dashboard").style.display = "block";
     document.getElementById("listing-form").style.display = "block";
+    document.getElementById("marketplace").style.display = "block";
     document.getElementById("username").textContent = user.displayName;
 
     const userRef = db.collection("users").doc(user.uid);
@@ -43,10 +39,11 @@ auth.onAuthStateChanged(user => {
         document.getElementById("balance").textContent = doc.data().balance;
       }
     });
+
+    loadMarketplace();
   }
 });
 
-// ✅ Top-up function
 function topUp(amount) {
   const user = auth.currentUser;
   const userRef = db.collection("users").doc(user.uid);
@@ -59,7 +56,6 @@ function topUp(amount) {
   });
 }
 
-// ✅ Post aircraft listing
 function postListing() {
   const user = auth.currentUser;
   const listing = {
@@ -79,5 +75,12 @@ function postListing() {
     document.getElementById("type").value = "";
     document.getElementById("tags").value = "";
     document.getElementById("description").value = "";
+    loadMarketplace();
   });
 }
+
+function loadMarketplace() {
+  const container = document.getElementById("listings-container");
+  container.innerHTML = "";
+
+  db.collection("list
