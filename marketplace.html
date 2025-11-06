@@ -6,15 +6,13 @@
   <title>Marketplace | GeoFS Aircraft Portal</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" href="data:,">
-
-  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
   <div class="container glass">
-    <h1>GeoFS Aicraft Portal</h1>
+    <h1>Aircraft Marketplace</h1>
     <p>Welcome, <span id="username"></span> | Balance: $<span id="balance"></span></p>
 
     <div style="margin-top: 20px;">
@@ -23,7 +21,6 @@
       <button class="btn" id="toggle-listing">List an Aircraft</button>
     </div>
 
-    <!-- Account Settings Panel -->
     <div id="account-settings-panel" style="display:none; margin-top: 20px;">
       <h2>Account Settings</h2>
       <input type="text" id="new-nickname" placeholder="New Nickname" />
@@ -31,7 +28,6 @@
       <button class="btn" onclick="deleteAccount()">Delete Account</button>
     </div>
 
-    <!-- Top-Up Panel -->
     <div id="topup-panel" style="display:none; margin-top: 20px;">
       <h2>Top Up Balance</h2>
       <div class="topup-buttons">
@@ -48,7 +44,6 @@
       <button class="btn" onclick="customTopUp()">Top Up Custom</button>
     </div>
 
-    <!-- Listing Form -->
     <div id="listing-form" style="display:none; margin-top: 20px;">
       <h2>List an Aircraft</h2>
       <input type="text" id="title" placeholder="Aircraft Title" />
