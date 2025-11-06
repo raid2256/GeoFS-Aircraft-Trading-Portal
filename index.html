@@ -1,31 +1,45 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GeoFS Aircraft Trading Portal</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="data:,">
 
-  <!-- ✅ Firebase CDN Scripts (Compat versions for browser use) -->
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore-compat.js"></script>
-
-  <!-- Optional: Prevent favicon error -->
-  <link rel="icon" href="data:,">
 </head>
 <body>
-  <h1>GeoFS Aircraft Trading Portal</h1>
+  <div class="container glass">
+    <h1>GeoFS Aircraft Trading Portal</h1>
 
-  <div id="auth">
-    <button id="login-google">Sign in with Google</button>
-    <button id="login-github">Sign in with GitHub</button>
-  </div>
+    <div id="auth">
+      <button class="btn" id="login-google">Sign in with Google</button>
+      <button class="btn" id="login-github">Sign in with GitHub</button>
+    </div>
 
-  <div id="dashboard" style="display:none;">
-    <p>Welcome, <span id="username"></span></p>
-    <p>Your Balance: $<span id="balance"></span></p>
-    <button onclick="topUp(1000)">Top Up $1,000</button>
-    <button onclick="topUp(5000)">Top Up $5,000</button>
-    <button onclick="topUp(10000)">Top Up $10,000</button>
+    <div id="dashboard" style="display:none;">
+      <p>Welcome, <span id="username"></span></p>
+      <p>Your Balance: $<span id="balance"></span></p>
+      <div class="topup-buttons">
+        <button class="btn" onclick="topUp(1000)">Top Up $1,000</button>
+        <button class="btn" onclick="topUp(5000)">Top Up $5,000</button>
+        <button class="btn" onclick="topUp(10000)">Top Up $10,000</button>
+      </div>
+    </div>
+
+    <div id="listing-form" style="display:none;">
+      <h2>Post an Aircraft</h2>
+      <input type="text" id="title" placeholder="Aircraft Title" />
+      <input type="number" id="price" placeholder="Price ($)" />
+      <input type="text" id="type" placeholder="Type (e.g. Jet, Prop)" />
+      <input type="text" id="tags" placeholder="Tags (comma separated)" />
+      <textarea id="description" placeholder="Description"></textarea>
+      <button class="btn" onclick="postListing()">Post Listing</button>
+    </div>
   </div>
 
   <script src="app.js"></script>
