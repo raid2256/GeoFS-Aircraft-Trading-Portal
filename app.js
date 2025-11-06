@@ -83,4 +83,19 @@ function loadMarketplace() {
   const container = document.getElementById("listings-container");
   container.innerHTML = "";
 
-  db.collection("list
+  db.collection("listings").orderBy("timestamp", "desc").get().then(snapshot => {
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const card = document.createElement("div");
+      card.className = "listing-card";
+      card.innerHTML = `
+        <h3>${data.title} - $${data.price}</h3>
+        <p><strong>Type:</strong> ${data.type}</p>
+        <p><strong>Description:</strong> ${data.description}</p>
+        <p class="tags"><strong>Tags:</strong> ${data.tags.join(", ")}</p>
+        <p><strong>Seller:</strong> ${data.sellerId}</p>
+      `;
+      container.appendChild(card);
+    });
+  });
+}
