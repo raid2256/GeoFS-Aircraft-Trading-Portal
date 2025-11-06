@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Marketplace | GeoFS Aircraft Portal</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="data:,">
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <div class="container glass">
+    <h1>GeoFS Aircraft Trading Portal</h1>
+    <p>Welcome, <span id="username"></span> | Balance: $<span id="balance"></span></p>
+
+    <button class="btn" onclick="toggleListingForm()">List an Aircraft</button>
+
+    <div id="listing-form" style="display:none; margin-top: 20px;">
+      <h2>List an Aircraft</h2>
+      <input type="text" id="title" placeholder="Aircraft Title" />
+      <input type="number" id="price" placeholder="Price ($)" />
+      <input type="text" id="type" placeholder="Type (e.g. Jet, Prop)" />
+      <input type="text" id="tags" placeholder="Tags (comma separated)" />
+      <textarea id="description" placeholder="Description"></textarea>
+      <button class="btn" onclick="postListing()">Post Listing</button>
+    </div>
+
+    <div id="marketplace" style="margin-top: 40px;">
+      <h2>Available Aircraft</h2>
+      <div id="listings-container"></div>
+    </div>
+  </div>
+
+  <script src="marketplace.js"></script>
+</body>
+</html>
