@@ -12,6 +12,17 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
+// ✅ Attach toggle button after DOM loads
+document.addEventListener("DOMContentLoaded", () => {
+  const toggleBtn = document.getElementById("toggle-listing");
+  if (toggleBtn) {
+    toggleBtn.addEventListener("click", () => {
+      const form = document.getElementById("listing-form");
+      form.style.display = form.style.display === "none" ? "block" : "none";
+    });
+  }
+});
+
 auth.onAuthStateChanged(user => {
   if (!user) {
     window.location.href = "index.html";
@@ -29,11 +40,6 @@ auth.onAuthStateChanged(user => {
 
   loadMarketplace();
 });
-
-function toggleListingForm() {
-  const form = document.getElementById("listing-form");
-  form.style.display = form.style.display === "none" ? "block" : "none";
-}
 
 function postListing() {
   const user = auth.currentUser;
