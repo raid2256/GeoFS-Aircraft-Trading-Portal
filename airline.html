@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Airline Management Portal</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="data:,">
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <div class="container glass">
+    <h1>Airline Management HQ</h1>
+    <p>Welcome, <span id="username"></span></p>
+
+    <!-- Airline creation -->
+    <div id="airline-form">
+      <h2>Create Airline</h2>
+      <input type="text" id="airline-name" placeholder="Airline Name" />
+      <textarea id="airline-description" placeholder="Description"></textarea>
+      <button class="btn" onclick="createAirline()">Create Airline</button>
+    </div>
+
+    <!-- Airline dashboard -->
+    <div id="airline-dashboard" style="display:none;">
+      <h2>Your Airline</h2>
+      <p id="airline-info"></p>
+
+      <h3>Manage Staff</h3>
+      <input type="text" id="new-staff" placeholder="Add Staff UID" />
+      <button class="btn" onclick="addStaff()">Add Staff</button>
+      <div id="staff-list"></div>
+
+      <h3>Edit Airline</h3>
+      <input type="text" id="airline-name-edit" placeholder="Edit Airline Name" />
+      <textarea id="airline-description-edit" placeholder="Edit Description"></textarea>
+      <button class="btn" onclick="updateAirline()">Update Airline</button>
+    </div>
+
+    <div style="margin-top:20px;">
+      <a href="marketplace.html" class="btn">Back to Marketplace</a>
+    </div>
+  </div>
+
+  <script src="airline.js"></script>
+</body>
+</html>
