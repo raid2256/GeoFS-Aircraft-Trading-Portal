@@ -1,18 +1,24 @@
-// Firebase config (same as marketplace.js)
-const firebaseConfig = { 
+// ✅ Firebase config — make sure this matches your Firebase Console exactly
+const firebaseConfig = {
   apiKey: "AIzaSyCAoqttx9CDHI_Chmlr1D-cm20g3dXxGHw",
   authDomain: "geofs-aircraft-t.firebaseapp.com",
   projectId: "geofs-aircraft-t",
   storageBucket: "geofs-aircraft-t.firebasestorage.app",
   messagingSenderId: "1047048836841",
   appId: "1:1047048836841:web:4a298d9933a4f8acdd8278",
-  measurementId: "G-TR3GX4NWZL"};
+  measurementId: "G-TR3GX4NWZL"
+};
+
+// ✅ Initialize Firebase FIRST
 firebase.initializeApp(firebaseConfig);
+
+// ✅ THEN define auth and db
 const auth = firebase.auth();
 const db = firebase.firestore();
 
 let currentAirlineDocRef = null;
 
+// ✅ Wait for user to be signed in before doing anything
 auth.onAuthStateChanged(user => {
   if (!user) {
     window.location.href = "index.html";
@@ -32,6 +38,8 @@ auth.onAuthStateChanged(user => {
 
 function createAirline() {
   const user = auth.currentUser;
+  if (!user) return;
+
   const name = document.getElementById("airline-name").value.trim();
   const description = document.getElementById("airline-description").value.trim();
 
@@ -51,11 +59,15 @@ function createAirline() {
   db.collection("airlines").add(airline).then(() => {
     alert("Airline created!");
     loadAirline();
+  }).catch(err => {
+    alert("Failed to create airline: " + err.message);
   });
 }
 
 function loadAirline() {
   const user = auth.currentUser;
+  if (!user) return;
+
   db.collection("airlines").where("ownerId", "==", user.uid).get().then(snapshot => {
     if (snapshot.empty) {
       document.getElementById("airline-form").style.display = "block";
@@ -81,6 +93,8 @@ function loadAirline() {
       <h4>Staff Members:</h4>
       ${members.length ? members.map(uid => `<code>${uid}</code>`).join(", ") : "None yet"}
     `;
+  }).catch(err => {
+    alert("Failed to load airline: " + err.message);
   });
 }
 
@@ -94,11 +108,14 @@ function addStaff() {
     alert("Staff added!");
     document.getElementById("new-staff").value = "";
     loadAirline();
+  }).catch(err => {
+    alert("Failed to add staff: " + err.message);
   });
 }
 
 function updateAirline() {
   if (!currentAirlineDocRef) return;
+
   const name = document.getElementById("airline-name-edit").value.trim();
   const description = document.getElementById("airline-description-edit").value.trim();
 
@@ -110,5 +127,7 @@ function updateAirline() {
   currentAirlineDocRef.update({ name, description }).then(() => {
     alert("Airline updated!");
     loadAirline();
+  }).catch(err => {
+    alert("Failed to update airline: " + err.message);
   });
 }
