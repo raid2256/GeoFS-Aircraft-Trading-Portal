@@ -1,5 +1,12 @@
 // Firebase config (same as marketplace.js)
-const firebaseConfig = { /* your config */ };
+const firebaseConfig = { 
+  apiKey: "AIzaSyCAoqttx9CDHI_Chmlr1D-cm20g3dXxGHw",
+  authDomain: "geofs-aircraft-t.firebaseapp.com",
+  projectId: "geofs-aircraft-t",
+  storageBucket: "geofs-aircraft-t.firebasestorage.app",
+  messagingSenderId: "1047048836841",
+  appId: "1:1047048836841:web:4a298d9933a4f8acdd8278",
+  measurementId: "G-TR3GX4NWZL"};
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
