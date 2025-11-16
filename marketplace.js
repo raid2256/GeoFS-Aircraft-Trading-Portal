@@ -1,3 +1,4 @@
+// Firebase config (replace with your project’s config if different)
 const firebaseConfig = {
   apiKey: "AIzaSyCAoqttx9CDHI_Chmlr1D-cm20g3dXxGHw",
   authDomain: "geofs-aircraft-t.firebaseapp.com",
@@ -13,20 +14,22 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("toggle-listing").onclick = () => {
-    togglePanel("listing-form");
-  };
-  document.getElementById("account-settings-btn").onclick = () => {
-    togglePanel("account-settings-panel");
-  };
-  document.getElementById("topup-toggle-btn").onclick = () => {
-    togglePanel("topup-panel");
+  // Toggle buttons
+  document.getElementById("toggle-listing").onclick = () => togglePanel("listing-form");
+  document.getElementById("account-settings-btn").onclick = () => togglePanel("account-settings-panel");
+  document.getElementById("topup-toggle-btn").onclick = () => togglePanel("topup-panel");
+
+  // Staff login button opens panel and loads airline
+  document.getElementById("staff-login-btn").onclick = () => {
+    togglePanel("staff-panel");
+    loadAirline();
   };
 });
 
 function togglePanel(id) {
   const panel = document.getElementById(id);
-  panel.style.display = panel.style.display === "none" ? "block" : "none";
+  const isHidden = panel.style.display === "none" || panel.style.display === "";
+  panel.style.display = isHidden ? "block" : "none";
 }
 
 auth.onAuthStateChanged(user => {
@@ -38,29 +41,40 @@ auth.onAuthStateChanged(user => {
   const userRef = db.collection("users").doc(user.uid);
   userRef.get().then(doc => {
     if (doc.exists) {
-      document.getElementById("username").textContent = doc.data().nickname || doc.data().username;
-      document.getElementById("balance").textContent = doc.data().balance;
+      const data = doc.data();
+      document.getElementById("username").textContent = data.nickname || data.username || "Pilot";
+      document.getElementById("balance").textContent = data.balance ?? 0;
     }
+  }).catch(err => {
+    console.error("Error loading user profile:", err);
   });
 
   loadMarketplace();
 });
 
+/* ---------- Balance / Account ---------- */
+
 function topUp(amount) {
   const user = auth.currentUser;
+  if (!user) return;
+
   const userRef = db.collection("users").doc(user.uid);
   userRef.update({
     balance: firebase.firestore.FieldValue.increment(amount)
   }).then(() => {
-    userRef.get().then(doc => {
-      document.getElementById("balance").textContent = doc.data().balance;
-      document.getElementById("topup-panel").style.display = "none";
-    });
+    return userRef.get();
+  }).then(doc => {
+    document.getElementById("balance").textContent = doc.data().balance;
+    // Auto-close panel
+    document.getElementById("topup-panel").style.display = "none";
+  }).catch(err => {
+    alert("Top-up failed: " + err.message);
   });
 }
 
 function customTopUp() {
-  const amount = parseInt(document.getElementById("custom-topup").value);
+  const val = document.getElementById("custom-topup").value;
+  const amount = parseInt(val);
   if (!isNaN(amount) && amount > 0) {
     topUp(amount);
   } else {
@@ -70,54 +84,82 @@ function customTopUp() {
 
 function changeNickname() {
   const newName = document.getElementById("new-nickname").value.trim();
-  if (newName.length > 0) {
-    const user = auth.currentUser;
-    const userRef = db.collection("users").doc(user.uid);
-    userRef.update({ nickname: newName }).then(() => {
-      document.getElementById("username").textContent = newName;
-      alert("Nickname updated!");
-      document.getElementById("account-settings-panel").style.display = "none";
-    });
-  } else {
+  if (newName.length === 0) {
     alert("Enter a valid nickname.");
+    return;
   }
+
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const userRef = db.collection("users").doc(user.uid);
+  userRef.update({ nickname: newName }).then(() => {
+    document.getElementById("username").textContent = newName;
+    alert("Nickname updated!");
+    // Auto-close panel
+    document.getElementById("account-settings-panel").style.display = "none";
+  }).catch(err => {
+    alert("Update failed: " + err.message);
+  });
 }
 
 function deleteAccount() {
-  if (confirm("Are you sure you want to delete your account? This cannot be undone.")) {
-    const user = auth.currentUser;
-    db.collection("users").doc(user.uid).delete().then(() => {
-      user.delete().then(() => {
-        alert("Account deleted.");
-        window.location.href = "index.html";
-      }).catch(err => {
-        alert("Error deleting account: " + err.message);
-      });
-    });
-  }
+  if (!confirm("Are you sure you want to delete your account? This cannot be undone.")) return;
+  const user = auth.currentUser;
+  if (!user) return;
+
+  db.collection("users").doc(user.uid).delete().then(() => {
+    return user.delete();
+  }).then(() => {
+    alert("Account deleted.");
+    window.location.href = "index.html";
+  }).catch(err => {
+    alert("Error deleting account: " + err.message);
+  });
 }
+
+/* ---------- Listings ---------- */
 
 function postListing() {
   const user = auth.currentUser;
+  if (!user) return;
+
+  const title = document.getElementById("title").value.trim();
+  const price = parseInt(document.getElementById("price").value);
+  const type = document.getElementById("type").value.trim();
+  const tags = document.getElementById("tags").value.split(",").map(t => t.trim()).filter(Boolean);
+  const description = document.getElementById("description").value.trim();
+
+  if (!title || isNaN(price) || price <= 0 || !type || !description) {
+    alert("Please fill out all fields with valid values.");
+    return;
+  }
+
   const listing = {
-    title: document.getElementById("title").value,
-    price: parseInt(document.getElementById("price").value),
-    type: document.getElementById("type").value,
-    tags: document.getElementById("tags").value.split(",").map(tag => tag.trim()),
-    description: document.getElementById("description").value,
+    title,
+    price,
+    type,
+    tags,
+    description,
     sellerId: user.uid,
+    sold: false,
     timestamp: Date.now()
   };
 
   db.collection("listings").add(listing).then(() => {
     alert("Listing posted!");
+    // Clear form
     document.getElementById("title").value = "";
     document.getElementById("price").value = "";
     document.getElementById("type").value = "";
     document.getElementById("tags").value = "";
     document.getElementById("description").value = "";
+    // Auto-close panel
     document.getElementById("listing-form").style.display = "none";
+    // Refresh marketplace
     loadMarketplace();
+  }).catch(err => {
+    alert("Failed to post listing: " + err.message);
   });
 }
 
@@ -126,6 +168,11 @@ function loadMarketplace() {
   container.innerHTML = "";
 
   db.collection("listings").orderBy("timestamp", "desc").get().then(snapshot => {
+    if (snapshot.empty) {
+      container.innerHTML = "<p>No listings yet.</p>";
+      return;
+    }
+
     snapshot.forEach(doc => {
       const data = doc.data();
       const card = document.createElement("div");
@@ -133,15 +180,16 @@ function loadMarketplace() {
 
       db.collection("users").doc(data.sellerId).get().then(userDoc => {
         const sellerName = userDoc.exists
-          ? userDoc.data().nickname || userDoc.data().username
+          ? (userDoc.data().nickname || userDoc.data().username || "Seller")
           : "Unknown Seller";
 
         card.innerHTML = `
           <h3>${data.title} - $${data.price}</h3>
           <p><strong>Type:</strong> ${data.type}</p>
           <p><strong>Description:</strong> ${data.description}</p>
-          <p class="tags"><strong>Tags:</strong> ${data.tags.join(", ")}</p>
+          <p class="tags"><strong>Tags:</strong> ${data.tags && data.tags.length ? data.tags.join(", ") : "—"}</p>
           <p><strong>Seller:</strong> ${sellerName}</p>
+          <p><strong>Status:</strong> ${data.sold ? "Sold" : "Available"}</p>
         `;
         container.appendChild(card);
       });
@@ -151,3 +199,64 @@ function loadMarketplace() {
     container.innerHTML = "<p>Error loading listings.</p>";
   });
 }
+
+/* ---------- Staff / Airline management ---------- */
+
+let currentAirlineDocRef = null; // keep ref for updates
+
+function createAirline() {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const name = document.getElementById("airline-name").value.trim();
+  const description = document.getElementById("airline-description").value.trim();
+
+  if (!name) {
+    alert("Enter an airline name.");
+    return;
+  }
+
+  const airline = {
+    name,
+    description,
+    ownerId: user.uid,
+    staff: [],
+    createdAt: Date.now()
+  };
+
+  db.collection("airlines").add(airline).then(() => {
+    alert("Airline created!");
+    loadAirline();
+  }).catch(err => {
+    alert("Failed to create airline: " + err.message);
+  });
+}
+
+function loadAirline() {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const form = document.getElementById("airline-form");
+  const dash = document.getElementById("airline-dashboard");
+  const info = document.getElementById("airline-info");
+  const staffList = document.getElementById("staff-list");
+  const nameEdit = document.getElementById("airline-name-edit");
+  const descEdit = document.getElementById("airline-description-edit");
+
+  // Reset
+  info.textContent = "";
+  staffList.innerHTML = "";
+  nameEdit.value = "";
+  descEdit.value = "";
+  currentAirlineDocRef = null;
+
+  db.collection("airlines").where("ownerId", "==", user.uid).get().then(snapshot => {
+    if (snapshot.empty) {
+      // No airline yet
+      form.style.display = "block";
+      dash.style.display = "none";
+      return;
+    }
+
+    const doc = snapshot.docs[0];
+    currentAirlineDocRef =
