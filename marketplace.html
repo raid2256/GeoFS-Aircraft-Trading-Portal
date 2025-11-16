@@ -20,6 +20,7 @@
       <button class="btn" id="account-settings-btn">Account Settings</button>
       <button class="btn" id="topup-toggle-btn">Top Up Balance</button>
       <button class="btn" id="toggle-listing">List an Aircraft</button>
+      <!-- Staff login now redirects to airline.html -->
       <button class="btn" id="staff-login-btn">Staff Login</button>
     </div>
 
@@ -57,34 +58,6 @@
       <input type="text" id="tags" placeholder="Tags (comma separated)" />
       <textarea id="description" placeholder="Description"></textarea>
       <button class="btn" onclick="postListing()">Post Listing</button>
-    </div>
-
-    <!-- Staff / Airline management -->
-    <div id="staff-panel" style="display:none; margin-top:20px;">
-      <h2>Airline Management</h2>
-
-      <!-- Create airline -->
-      <div id="airline-form">
-        <input type="text" id="airline-name" placeholder="Airline Name" />
-        <textarea id="airline-description" placeholder="Description"></textarea>
-        <button class="btn" onclick="createAirline()">Create Airline</button>
-      </div>
-
-      <!-- Dashboard -->
-      <div id="airline-dashboard" style="display:none;">
-        <h3>Your Airline</h3>
-        <p id="airline-info"></p>
-        <div style="margin-top:10px;">
-          <input type="text" id="new-staff" placeholder="Add Staff UID" />
-          <button class="btn" onclick="addStaff()">Add Staff</button>
-        </div>
-        <div id="staff-list" style="margin-top:10px;"></div>
-        <div style="margin-top:10px;">
-          <input type="text" id="airline-name-edit" placeholder="Edit Airline Name" />
-          <textarea id="airline-description-edit" placeholder="Edit Description"></textarea>
-          <button class="btn" onclick="updateAirline()">Update Airline</button>
-        </div>
-      </div>
     </div>
 
     <!-- Marketplace -->
