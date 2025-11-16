@@ -1,5 +1,5 @@
 const firebaseConfig = {
-  apiKey: "AIzaSyCAoqttx9CDHI_Chmlr1D-cm20g3dXxGHw",
+apiKey: "AIzaSyCAoqttx9CDHI_Chmlr1D-cm20g3dXxGHw",
   authDomain: "geofs-aircraft-t.firebaseapp.com",
   projectId: "geofs-aircraft-t",
   storageBucket: "geofs-aircraft-t.firebasestorage.app",
