@@ -13,8 +13,6 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-let userAirlineId = null;
-
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("toggle-listing").onclick = () => togglePanel("listing-form");
   document.getElementById("account-settings-btn").onclick = () => togglePanel("account-settings-panel");
@@ -45,34 +43,35 @@ auth.onAuthStateChanged(user => {
     }
   });
 
-  checkAirlineMembership(user.uid);
+  loadUserAirlines(user.uid);
   loadMarketplace();
 });
 
-function checkAirlineMembership(uid) {
-  db.collection("airlines").where("ownerId", "==", uid).get().then(snapshot => {
-    if (!snapshot.empty) {
-      const doc = snapshot.docs[0];
-      userAirlineId = doc.id;
-      document.getElementById("airline-id").value = userAirlineId;
-      return;
-    }
+function loadUserAirlines(uid) {
+  const airlineSelect = document.getElementById("airline-id");
+  airlineSelect.innerHTML = `<option value="">Select your airline</option>`;
 
-    return db.collection("airlines").where("staff", "array-contains", uid).get().then(staffSnap => {
-      if (!staffSnap.empty) {
-        const doc = staffSnap.docs[0];
-        userAirlineId = doc.id;
-        document.getElementById("airline-id").value = userAirlineId;
-      } else {
-        document.getElementById("airline-id").value = "Not affiliated";
-        document.getElementById("listing-form").innerHTML = `
-          <h2>List an Aircraft</h2>
-          <p>You must be an airline owner or staff member to post listings.</p>
-        `;
-      }
+  db.collection("airlines").where("ownerId", "==", uid).get().then(ownerSnap => {
+    ownerSnap.forEach(doc => {
+      const name = doc.data().name || "Unnamed Airline";
+      airlineSelect.innerHTML += `<option value="${doc.id}">${name} (Owner)</option>`;
     });
+
+    return db.collection("airlines").where("staff", "array-contains", uid).get();
+  }).then(staffSnap => {
+    staffSnap.forEach(doc => {
+      const name = doc.data().name || "Unnamed Airline";
+      airlineSelect.innerHTML += `<option value="${doc.id}">${name} (Staff)</option>`;
+    });
+
+    if (airlineSelect.options.length === 1) {
+      document.getElementById("listing-form").innerHTML = `
+        <h2>List an Aircraft</h2>
+        <p>You must be an airline owner or staff member to post listings.</p>
+      `;
+    }
   }).catch(err => {
-    console.error("Error checking airline membership:", err);
+    console.error("Error loading airlines:", err);
   });
 }
 
@@ -138,8 +137,10 @@ function deleteAccount() {
 
 function postListing() {
   const user = auth.currentUser;
-  if (!user || !userAirlineId) {
-    alert("You must be part of an airline to post listings.");
+  const airlineId = document.getElementById("airline-id").value;
+
+  if (!user || !airlineId) {
+    alert("You must select an airline to post listings.");
     return;
   }
 
@@ -161,7 +162,7 @@ function postListing() {
     tags,
     description,
     sellerId: user.uid,
-    airlineId: userAirlineId,
+    airlineId,
     sold: false,
     timestamp: Date.now()
   };
@@ -173,6 +174,7 @@ function postListing() {
     document.getElementById("type").value = "";
     document.getElementById("tags").value = "";
     document.getElementById("description").value = "";
+    document.getElementById("airline-id").value = "";
     document.getElementById("listing-form").style.display = "none";
     loadMarketplace();
   }).catch(err => {
@@ -195,7 +197,6 @@ function loadMarketplace() {
       const card = document.createElement("div");
       card.className = "listing-card";
 
-      // Fetch seller and airline info
       Promise.all([
         db.collection("users").doc(data.sellerId).get(),
         db.collection("airlines").doc(data.airlineId).get()
