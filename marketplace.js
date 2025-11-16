@@ -1,8 +1,9 @@
+// Firebase config
 const firebaseConfig = {
-apiKey: "AIzaSyCAoqttx9CDHI_Chmlr1D-cm20g3dXxGHw",
+  apiKey: "AIzaSyCAoqttx9CDHI_Chmlr1D-cm20g3dXxGHw",
   authDomain: "geofs-aircraft-t.firebaseapp.com",
   projectId: "geofs-aircraft-t",
-  storageBucket: "geofs-aircraft-t.firebasestorage.app",
+  storageBucket: "geofs-aircraft-t.appspot.com",
   messagingSenderId: "1047048836841",
   appId: "1:1047048836841:web:4a298d9933a4f8acdd8278",
   measurementId: "G-TR3GX4NWZL"
@@ -12,13 +13,12 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
+let userAirlineId = null;
+
 document.addEventListener("DOMContentLoaded", () => {
-  // Toggle buttons
   document.getElementById("toggle-listing").onclick = () => togglePanel("listing-form");
   document.getElementById("account-settings-btn").onclick = () => togglePanel("account-settings-panel");
   document.getElementById("topup-toggle-btn").onclick = () => togglePanel("topup-panel");
-
-  // Staff login now redirects to Airline HQ page
   document.getElementById("staff-login-btn").onclick = () => {
     window.location.href = "airline.html";
   };
@@ -43,12 +43,38 @@ auth.onAuthStateChanged(user => {
       document.getElementById("username").textContent = data.nickname || data.username || "Pilot";
       document.getElementById("balance").textContent = data.balance ?? 0;
     }
-  }).catch(err => {
-    console.error("Error loading user profile:", err);
   });
 
+  checkAirlineMembership(user.uid);
   loadMarketplace();
 });
+
+function checkAirlineMembership(uid) {
+  db.collection("airlines").where("ownerId", "==", uid).get().then(snapshot => {
+    if (!snapshot.empty) {
+      const doc = snapshot.docs[0];
+      userAirlineId = doc.id;
+      document.getElementById("airline-id").value = userAirlineId;
+      return;
+    }
+
+    return db.collection("airlines").where("staff", "array-contains", uid).get().then(staffSnap => {
+      if (!staffSnap.empty) {
+        const doc = staffSnap.docs[0];
+        userAirlineId = doc.id;
+        document.getElementById("airline-id").value = userAirlineId;
+      } else {
+        document.getElementById("airline-id").value = "Not affiliated";
+        document.getElementById("listing-form").innerHTML = `
+          <h2>List an Aircraft</h2>
+          <p>You must be an airline owner or staff member to post listings.</p>
+        `;
+      }
+    });
+  }).catch(err => {
+    console.error("Error checking airline membership:", err);
+  });
+}
 
 /* ---------- Balance / Account ---------- */
 
@@ -118,7 +144,10 @@ function deleteAccount() {
 
 function postListing() {
   const user = auth.currentUser;
-  if (!user) return;
+  if (!user || !userAirlineId) {
+    alert("You must be part of an airline to post listings.");
+    return;
+  }
 
   const title = document.getElementById("title").value.trim();
   const price = parseInt(document.getElementById("price").value);
@@ -138,6 +167,7 @@ function postListing() {
     tags,
     description,
     sellerId: user.uid,
+    airlineId: userAirlineId,
     sold: false,
     timestamp: Date.now()
   };
