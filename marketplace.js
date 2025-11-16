@@ -65,7 +65,6 @@ function topUp(amount) {
     return userRef.get();
   }).then(doc => {
     document.getElementById("balance").textContent = doc.data().balance;
-    // Auto-close panel
     document.getElementById("topup-panel").style.display = "none";
   }).catch(err => {
     alert("Top-up failed: " + err.message);
@@ -96,7 +95,6 @@ function changeNickname() {
   userRef.update({ nickname: newName }).then(() => {
     document.getElementById("username").textContent = newName;
     alert("Nickname updated!");
-    // Auto-close panel
     document.getElementById("account-settings-panel").style.display = "none";
   }).catch(err => {
     alert("Update failed: " + err.message);
@@ -148,15 +146,12 @@ function postListing() {
 
   db.collection("listings").add(listing).then(() => {
     alert("Listing posted!");
-    // Clear form
     document.getElementById("title").value = "";
     document.getElementById("price").value = "";
     document.getElementById("type").value = "";
     document.getElementById("tags").value = "";
     document.getElementById("description").value = "";
-    // Auto-close panel
     document.getElementById("listing-form").style.display = "none";
-    // Refresh marketplace
     loadMarketplace();
   }).catch(err => {
     alert("Failed to post listing: " + err.message);
@@ -202,7 +197,7 @@ function loadMarketplace() {
 
 /* ---------- Staff / Airline management ---------- */
 
-let currentAirlineDocRef = null; // keep ref for updates
+let currentAirlineDocRef = null;
 
 function createAirline() {
   const user = auth.currentUser;
@@ -243,7 +238,6 @@ function loadAirline() {
   const nameEdit = document.getElementById("airline-name-edit");
   const descEdit = document.getElementById("airline-description-edit");
 
-  // Reset
   info.textContent = "";
   staffList.innerHTML = "";
   nameEdit.value = "";
@@ -252,11 +246,74 @@ function loadAirline() {
 
   db.collection("airlines").where("ownerId", "==", user.uid).get().then(snapshot => {
     if (snapshot.empty) {
-      // No airline yet
       form.style.display = "block";
       dash.style.display = "none";
       return;
     }
 
     const doc = snapshot.docs[0];
-    currentAirlineDocRef =
+    currentAirlineDocRef = doc.ref;
+    const airline = doc.data();
+
+    form.style.display = "none";
+    dash.style.display = "block";
+    info.innerHTML = `<strong>${airline.name}</strong><br>${airline.description || ""}`;
+
+    // Prefill edit inputs
+    nameEdit.value = airline.name || "";
+    descEdit.value = airline.description || "";
+
+    // Render staff list
+    const members = airline.staff && airline.staff.length ? airline.staff : [];
+    staffList.innerHTML = `
+      <h4>Staff Members:</h4>
+      ${members.length ? members.map(uid => `<code>${uid}</code>`).join(", ") : "None yet"}
+    `;
+  }).catch(err => {
+    alert("Failed to load airline: " + err.message);
+  });
+} // <-- closes loadAirline()
+
+function addStaff() {
+  const newStaff = document.getElementById("new-staff").value.trim();
+  if (!newStaff) {
+    alert("Enter a staff UID.");
+    return;
+  }
+  if (!currentAirlineDocRef) {
+    alert("No airline found for this account.");
+    return;
+  }
+
+  currentAirlineDocRef.update({
+    staff: firebase.firestore.FieldValue.arrayUnion(newStaff)
+  }).then(() => {
+    alert("Staff added!");
+    document.getElementById("new-staff").value = "";
+    loadAirline();
+  }).catch(err => {
+    alert("Failed to add staff: " + err.message);
+  });
+}
+
+function updateAirline() {
+  if (!currentAirlineDocRef) {
+    alert("No airline to update.");
+    return;
+  }
+  const name = document.getElementById("airline-name-edit").value.trim();
+  const description = document.getElementById("airline-description-edit").value.trim();
+  if (!name) {
+    alert("Enter an airline name.");
+    return;
+  }
+
+  currentAirlineDocRef.update({ name, description }).then(() => {
+    alert("Airline updated!");
+    loadAirline();
+    // Auto-close staff panel after update
+    document.getElementById("staff-panel").style.display = "none";
+  }).catch(err => {
+    alert("Failed to update airline: " + err.message);
+  });
+}
