@@ -13,7 +13,7 @@
 </head>
 <body>
   <div class="container glass">
-    <h1>Aircraft Marketplace</h1>
+    <h1>GeoFS Aircraft Trading Portal</h1>
     <p>Welcome, <span id="username"></span> | Balance: $<span id="balance"></span></p>
 
     <div style="margin-top: 20px;">
@@ -57,15 +57,17 @@
       <input type="text" id="tags" placeholder="Tags (comma separated)" />
       <textarea id="description" placeholder="Description"></textarea>
 
-      <!-- ✈️ New: Airline ID field -->
-      <input type="text" id="airline-id" placeholder="Airline ID (auto-filled if owner/staff)" readonly />
+      <!-- ✈️ Airline selection dropdown -->
+      <select id="airline-id">
+        <option value="">Select your airline</option>
+      </select>
 
       <button class="btn" onclick="postListing()">Post Listing</button>
     </div>
 
     <!-- Marketplace -->
     <div id="marketplace" style="margin-top: 40px;">
-      <h2>Available Aircraft</h2>
+      <h2>GeoFS Aircraft Trading Portal</h2>
       <div id="listings-container"></div>
     </div>
   </div>
