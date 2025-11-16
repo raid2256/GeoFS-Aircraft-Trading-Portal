@@ -1,4 +1,3 @@
-// Firebase config (replace with your project’s config if different)
 const firebaseConfig = {
   apiKey: "AIzaSyCAoqttx9CDHI_Chmlr1D-cm20g3dXxGHw",
   authDomain: "geofs-aircraft-t.firebaseapp.com",
@@ -19,10 +18,9 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("account-settings-btn").onclick = () => togglePanel("account-settings-panel");
   document.getElementById("topup-toggle-btn").onclick = () => togglePanel("topup-panel");
 
-  // Staff login button opens panel and loads airline
+  // Staff login now redirects to Airline HQ page
   document.getElementById("staff-login-btn").onclick = () => {
-    togglePanel("staff-panel");
-    loadAirline();
+    window.location.href = "airline.html";
   };
 });
 
@@ -192,128 +190,5 @@ function loadMarketplace() {
   }).catch(error => {
     console.error("Error loading listings:", error);
     container.innerHTML = "<p>Error loading listings.</p>";
-  });
-}
-
-/* ---------- Staff / Airline management ---------- */
-
-let currentAirlineDocRef = null;
-
-function createAirline() {
-  const user = auth.currentUser;
-  if (!user) return;
-
-  const name = document.getElementById("airline-name").value.trim();
-  const description = document.getElementById("airline-description").value.trim();
-
-  if (!name) {
-    alert("Enter an airline name.");
-    return;
-  }
-
-  const airline = {
-    name,
-    description,
-    ownerId: user.uid,
-    staff: [],
-    createdAt: Date.now()
-  };
-
-  db.collection("airlines").add(airline).then(() => {
-    alert("Airline created!");
-    loadAirline();
-  }).catch(err => {
-    alert("Failed to create airline: " + err.message);
-  });
-}
-
-function loadAirline() {
-  const user = auth.currentUser;
-  if (!user) return;
-
-  const form = document.getElementById("airline-form");
-  const dash = document.getElementById("airline-dashboard");
-  const info = document.getElementById("airline-info");
-  const staffList = document.getElementById("staff-list");
-  const nameEdit = document.getElementById("airline-name-edit");
-  const descEdit = document.getElementById("airline-description-edit");
-
-  info.textContent = "";
-  staffList.innerHTML = "";
-  nameEdit.value = "";
-  descEdit.value = "";
-  currentAirlineDocRef = null;
-
-  db.collection("airlines").where("ownerId", "==", user.uid).get().then(snapshot => {
-    if (snapshot.empty) {
-      form.style.display = "block";
-      dash.style.display = "none";
-      return;
-    }
-
-    const doc = snapshot.docs[0];
-    currentAirlineDocRef = doc.ref;
-    const airline = doc.data();
-
-    form.style.display = "none";
-    dash.style.display = "block";
-    info.innerHTML = `<strong>${airline.name}</strong><br>${airline.description || ""}`;
-
-    // Prefill edit inputs
-    nameEdit.value = airline.name || "";
-    descEdit.value = airline.description || "";
-
-    // Render staff list
-    const members = airline.staff && airline.staff.length ? airline.staff : [];
-    staffList.innerHTML = `
-      <h4>Staff Members:</h4>
-      ${members.length ? members.map(uid => `<code>${uid}</code>`).join(", ") : "None yet"}
-    `;
-  }).catch(err => {
-    alert("Failed to load airline: " + err.message);
-  });
-} // <-- closes loadAirline()
-
-function addStaff() {
-  const newStaff = document.getElementById("new-staff").value.trim();
-  if (!newStaff) {
-    alert("Enter a staff UID.");
-    return;
-  }
-  if (!currentAirlineDocRef) {
-    alert("No airline found for this account.");
-    return;
-  }
-
-  currentAirlineDocRef.update({
-    staff: firebase.firestore.FieldValue.arrayUnion(newStaff)
-  }).then(() => {
-    alert("Staff added!");
-    document.getElementById("new-staff").value = "";
-    loadAirline();
-  }).catch(err => {
-    alert("Failed to add staff: " + err.message);
-  });
-}
-
-function updateAirline() {
-  if (!currentAirlineDocRef) {
-    alert("No airline to update.");
-    return;
-  }
-  const name = document.getElementById("airline-name-edit").value.trim();
-  const description = document.getElementById("airline-description-edit").value.trim();
-  if (!name) {
-    alert("Enter an airline name.");
-    return;
-  }
-
-  currentAirlineDocRef.update({ name, description }).then(() => {
-    alert("Airline updated!");
-    loadAirline();
-    // Auto-close staff panel after update
-    document.getElementById("staff-panel").style.display = "none";
-  }).catch(err => {
-    alert("Failed to update airline: " + err.message);
   });
 }
