@@ -76,8 +76,6 @@ function checkAirlineMembership(uid) {
   });
 }
 
-/* ---------- Balance / Account ---------- */
-
 function topUp(amount) {
   const user = auth.currentUser;
   if (!user) return;
@@ -85,14 +83,13 @@ function topUp(amount) {
   const userRef = db.collection("users").doc(user.uid);
   userRef.update({
     balance: firebase.firestore.FieldValue.increment(amount)
-  }).then(() => {
-    return userRef.get();
-  }).then(doc => {
-    document.getElementById("balance").textContent = doc.data().balance;
-    document.getElementById("topup-panel").style.display = "none";
-  }).catch(err => {
-    alert("Top-up failed: " + err.message);
-  });
+  }).then(() => userRef.get())
+    .then(doc => {
+      document.getElementById("balance").textContent = doc.data().balance;
+      document.getElementById("topup-panel").style.display = "none";
+    }).catch(err => {
+      alert("Top-up failed: " + err.message);
+    });
 }
 
 function customTopUp() {
@@ -130,17 +127,14 @@ function deleteAccount() {
   const user = auth.currentUser;
   if (!user) return;
 
-  db.collection("users").doc(user.uid).delete().then(() => {
-    return user.delete();
-  }).then(() => {
-    alert("Account deleted.");
-    window.location.href = "index.html";
-  }).catch(err => {
-    alert("Error deleting account: " + err.message);
-  });
+  db.collection("users").doc(user.uid).delete().then(() => user.delete())
+    .then(() => {
+      alert("Account deleted.");
+      window.location.href = "index.html";
+    }).catch(err => {
+      alert("Error deleting account: " + err.message);
+    });
 }
-
-/* ---------- Listings ---------- */
 
 function postListing() {
   const user = auth.currentUser;
@@ -201,10 +195,18 @@ function loadMarketplace() {
       const card = document.createElement("div");
       card.className = "listing-card";
 
-      db.collection("users").doc(data.sellerId).get().then(userDoc => {
+      // Fetch seller and airline info
+      Promise.all([
+        db.collection("users").doc(data.sellerId).get(),
+        db.collection("airlines").doc(data.airlineId).get()
+      ]).then(([userDoc, airlineDoc]) => {
         const sellerName = userDoc.exists
           ? (userDoc.data().nickname || userDoc.data().username || "Seller")
           : "Unknown Seller";
+
+        const airlineName = airlineDoc.exists
+          ? airlineDoc.data().name || "Unnamed Airline"
+          : "Unknown Airline";
 
         card.innerHTML = `
           <h3>${data.title} - $${data.price}</h3>
@@ -212,6 +214,7 @@ function loadMarketplace() {
           <p><strong>Description:</strong> ${data.description}</p>
           <p class="tags"><strong>Tags:</strong> ${data.tags && data.tags.length ? data.tags.join(", ") : "—"}</p>
           <p><strong>Seller:</strong> ${sellerName}</p>
+          <p><strong>Airline:</strong> ${airlineName}</p>
           <p><strong>Status:</strong> ${data.sold ? "Sold" : "Available"}</p>
         `;
         container.appendChild(card);
