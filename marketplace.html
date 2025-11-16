@@ -57,8 +57,10 @@
       <input type="text" id="tags" placeholder="Tags (comma separated)" />
       <textarea id="description" placeholder="Description"></textarea>
 
-      <!-- ✈️ Airline ID field (manual entry) -->
-      <input type="text" id="airline-id" placeholder="Enter your airline ID" />
+      <!-- ✈️ Airline selection dropdown -->
+      <select id="airline-id">
+        <option value="">Select your airline</option>
+      </select>
 
       <button class="btn" onclick="postListing()">Post Listing</button>
     </div>
