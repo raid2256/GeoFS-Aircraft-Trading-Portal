@@ -56,6 +56,9 @@ auth.onAuthStateChanged(user => {
           try {
             if (msg.timestamp && typeof msg.timestamp.toDate === "function") {
               timestamp = msg.timestamp.toDate().toLocaleString();
+            } else if (msg.timestamp && msg.timestamp.seconds) {
+              // fallback if timestamp is a plain object with seconds
+              timestamp = new Date(msg.timestamp.seconds * 1000).toLocaleString();
             }
           } catch (e) {
             console.warn("Invalid timestamp format:", msg.timestamp);
