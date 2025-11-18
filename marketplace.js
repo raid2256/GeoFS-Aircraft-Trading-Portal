@@ -237,14 +237,19 @@ function loadMarketplace() {
           <p><strong>Status:</strong> ${data.sold ? "Sold" : "Available"}</p>
         `;
 
-        // ✅ Only show "Contact Seller" if current user is NOT the seller
         const currentUser = auth.currentUser;
         if (currentUser && currentUser.uid !== data.sellerId) {
-          const contactBtn = document.createElement("button");
-          contactBtn.className = "btn";
-          contactBtn.textContent = "Contact Seller";
-          contactBtn.onclick = () => openChat(data.sellerId, doc.id);
-          card.appendChild(contactBtn);
+          const airlineData = airlineDoc.data();
+          const isStaff = Array.isArray(airlineData?.staff) && airlineData.staff.includes(currentUser.uid);
+          const isOwner = airlineData?.ownerId === currentUser.uid;
+
+          if (isStaff || isOwner) {
+            const contactBtn = document.createElement("button");
+            contactBtn.className = "btn";
+            contactBtn.textContent = "Contact Seller";
+            contactBtn.onclick = () => openChat(data.sellerId, doc.id);
+            card.appendChild(contactBtn);
+          }
         }
 
         container.appendChild(card);
