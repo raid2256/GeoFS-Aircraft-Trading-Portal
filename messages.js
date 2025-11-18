@@ -48,8 +48,9 @@ auth.onAuthStateChanged(user => {
             ? listingDoc.data().title || "Untitled Listing"
             : "Unknown Listing";
 
-          const messageText = typeof msg.text === "string" && msg.text.trim() !== ""
-            ? msg.text
+          // ✅ Use msg.message instead of msg.text
+          const messageText = typeof msg.message === "string" && msg.message.trim() !== ""
+            ? msg.message
             : "<em>No content</em>";
 
           let timestamp = "Just now";
@@ -78,7 +79,7 @@ auth.onAuthStateChanged(user => {
           const fallbackCard = document.createElement("div");
           fallbackCard.className = "message-card";
           fallbackCard.innerHTML = `
-            <p><strong>Message:</strong> ${msg.text || "<em>No content</em>"}</p>
+            <p><strong>Message:</strong> ${msg.message || "<em>No content</em>"}</p>
             <p><em>⚠️ Failed to load sender or listing info</em></p>
           `;
           container.appendChild(fallbackCard);
