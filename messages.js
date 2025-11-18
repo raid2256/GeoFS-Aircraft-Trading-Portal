@@ -51,9 +51,15 @@ auth.onAuthStateChanged(user => {
             : "Unknown Listing";
 
           const messageText = msg.text || "<em>No content</em>";
-          const timestamp = msg.timestamp instanceof firebase.firestore.Timestamp
-            ? msg.timestamp.toDate().toLocaleString()
-            : "Just now";
+
+          let timestamp = "Just now";
+          try {
+            if (msg.timestamp && typeof msg.timestamp.toDate === "function") {
+              timestamp = msg.timestamp.toDate().toLocaleString();
+            }
+          } catch (e) {
+            console.warn("Invalid timestamp format:", msg.timestamp);
+          }
 
           const card = document.createElement("div");
           card.className = "message-card";
