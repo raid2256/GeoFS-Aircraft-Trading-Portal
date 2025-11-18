@@ -21,23 +21,43 @@ auth.onAuthStateChanged(user => {
       snapshot.forEach(doc => {
         const msg = doc.data();
 
-        Promise.all([
-          db.collection("users").doc(msg.senderId).get(),
-          db.collection("listings").doc(msg.listingId).get()
-        ]).then(([senderDoc, listingDoc]) => {
-          const senderName = senderDoc.exists ? senderDoc.data().nickname || senderDoc.data().username : "Unknown";
-          const listingTitle = listingDoc.exists ? listingDoc.data().title : "Unknown Listing";
+        const senderRef = db.collection("users").doc(msg.senderId);
+        const listingRef = db.collection("listings").doc(msg.listingId);
 
-          const card = document.createElement("div");
-          card.className = "message-card";
-          card.innerHTML = `
-            <p><strong>From:</strong> ${senderName}</p>
-            <p><strong>Listing:</strong> ${listingTitle}</p>
-            <p><strong>Message:</strong> ${msg.text}</p>
-            <p><em>${msg.timestamp?.toDate().toLocaleString() || "Just now"}</em></p>
-          `;
-          container.appendChild(card);
-        });
+        Promise.all([senderRef.get(), listingRef.get()])
+          .then(([senderDoc, listingDoc]) => {
+            const senderName = senderDoc.exists
+              ? senderDoc.data().nickname || senderDoc.data().username || "Unnamed"
+              : "Unknown";
+
+            const listingTitle = listingDoc.exists
+              ? listingDoc.data().title || "Untitled Listing"
+              : "Unknown Listing";
+
+            const messageText = msg.text || "<em>No content</em>";
+            const timestamp = msg.timestamp?.toDate().toLocaleString() || "Just now";
+
+            const card = document.createElement("div");
+            card.className = "message-card";
+            card.innerHTML = `
+              <p><strong>From:</strong> ${senderName}</p>
+              <p><strong>Listing:</strong> ${listingTitle}</p>
+              <p><strong>Message:</strong> ${messageText}</p>
+              <p><em>${timestamp}</em></p>
+            `;
+            container.appendChild(card);
+          })
+          .catch(err => {
+            console.error("Error loading sender/listing:", err);
+            const fallbackCard = document.createElement("div");
+            fallbackCard.className = "message-card";
+            fallbackCard.innerHTML = `
+              <p><strong>Message:</strong> ${msg.text || "<em>No content</em>"}</p>
+              <p><em>${msg.timestamp?.toDate().toLocaleString() || "Just now"}</em></p>
+              <p><em>⚠️ Failed to load sender or listing info</em></p>
+            `;
+            container.appendChild(fallbackCard);
+          });
       });
     })
     .catch(err => {
