@@ -42,15 +42,17 @@ function createAirline() {
 
   const name = document.getElementById("airline-name").value.trim();
   const description = document.getElementById("airline-description").value.trim();
+  const hubAirport = document.getElementById("hub-airport").value.trim();
 
-  if (!name) {
-    alert("Enter an airline name.");
+  if (!name || !hubAirport) {
+    alert("Enter both airline name and hub airport.");
     return;
   }
 
   const airline = {
     name,
     description,
+    hubAirport,
     ownerId: user.uid,
     staff: [],
     createdAt: Date.now()
@@ -82,7 +84,9 @@ function loadAirline() {
     document.getElementById("airline-form").style.display = "none";
     document.getElementById("airline-dashboard").style.display = "block";
     document.getElementById("airline-info").innerHTML =
-      `<strong>${airline.name}</strong><br>${airline.description || ""}`;
+      `<strong>${airline.name}</strong><br>
+       Hub: ${airline.hubAirport || "N/A"}<br>
+       ${airline.description || ""}`;
 
     document.getElementById("airline-name-edit").value = airline.name || "";
     document.getElementById("airline-description-edit").value = airline.description || "";
