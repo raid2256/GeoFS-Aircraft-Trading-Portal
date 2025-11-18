@@ -75,69 +75,7 @@
     <a href="airline.html" class="back-button">← Back to Airline HQ</a>
   </div>
 
-  <!-- Firebase Config + Logic -->
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCAoqttx9CDHI_Chmlr1D-cm20g3dXxGHw",
-      authDomain: "geofs-aircraft-t.firebaseapp.com",
-      projectId: "geofs-aircraft-t",
-      storageBucket: "geofs-aircraft-t.firebasestorage.app",
-      messagingSenderId: "1047048836841",
-      appId: "1:1047048836841:web:4a298d9933a4f8acdd8278",
-      measurementId: "G-TR3GX4NWZL"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
-    auth.onAuthStateChanged(user => {
-      if (!user) {
-        document.getElementById("messages-container").innerHTML = "<p>Please sign in to view your messages.</p>";
-        return;
-      }
-
-      const container = document.getElementById("messages-container");
-      container.innerHTML = "<p>Loading messages...</p>";
-
-      db.collection("messages")
-        .where("receiverId", "==", user.uid)
-        .orderBy("timestamp", "desc")
-        .get()
-        .then(snapshot => {
-          if (snapshot.empty) {
-            container.innerHTML = "<p>No messages yet.</p>";
-            return;
-          }
-
-          container.innerHTML = "";
-          snapshot.forEach(doc => {
-            const msg = doc.data();
-
-            Promise.all([
-              db.collection("users").doc(msg.senderId).get(),
-              db.collection("listings").doc(msg.listingId).get()
-            ]).then(([senderDoc, listingDoc]) => {
-              const senderName = senderDoc.exists ? senderDoc.data().nickname || senderDoc.data().username : "Unknown";
-              const listingTitle = listingDoc.exists ? listingDoc.data().title : "Unknown Listing";
-
-              const card = document.createElement("div");
-              card.className = "message-card";
-              card.innerHTML = `
-                <p><strong>From:</strong> ${senderName}</p>
-                <p><strong>Listing:</strong> ${listingTitle}</p>
-                <p><strong>Message:</strong> ${msg.text || "<em>No content</em>"}</p>
-                <p><em>${msg.timestamp?.toDate().toLocaleString() || "Just now"}</em></p>
-              `;
-              container.appendChild(card);
-            });
-          });
-        })
-        .catch(err => {
-          console.error("Error loading messages:", err);
-          container.innerHTML = "<p>Error loading messages.</p>";
-        });
-    });
-  </script>
+  <!-- Link to external script -->
+  <script src="messages.js"></script>
 </body>
 </html>
