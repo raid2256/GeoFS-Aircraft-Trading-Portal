@@ -231,4 +231,76 @@ function loadMarketplace() {
           <p><strong>Type:</strong> ${data.type}</p>
           <p><strong>Description:</strong> ${data.description}</p>
           <p class="tags"><strong>Tags:</strong> ${data.tags && data.tags.length ? data.tags.join(", ") : "—"}</p>
-          <p><
+          <p><strong>Seller:</strong> ${sellerName}</p>
+          <p><strong>Airline:</strong> ${airlineName}</p>
+          <p><strong>Hub:</strong> ${data.hub || "N/A"}</p>
+          <p><strong>Status:</strong> ${data.sold ? "Sold" : "Available"}</p>
+          <button class="btn" onclick="openChat('${data.sellerId}', '${doc.id}')">Contact Seller</button>
+        `;
+        container.appendChild(card);
+      }).catch(err => {
+        console.error("Error loading listing details:", err);
+        card.innerHTML = `
+          <h3>${data.title} - $${data.price}</h3>
+          <p><strong>Type:</strong> ${data.type}</p>
+          <p><strong>Description:</strong> ${data.description}</p>
+          <p class="tags"><strong>Tags:</strong> ${data.tags && data.tags.length ? data.tags.join(", ") : "—"}</p>
+          <p><strong>Seller:</strong> Unknown</p>
+          <p><strong>Airline:</strong> Unknown</p>
+          <p><strong>Hub:</strong> ${data.hub || "N/A"}</p>
+          <p><strong>Status:</strong> ${data.sold ? "Sold" : "Available"}</p>
+        `;
+        container.appendChild(card);
+      });
+    });
+  }).catch(error => {
+    console.error("Error loading listings:", error);
+    container.innerHTML = "<p>Error loading listings.</p>";
+  });
+}
+
+// 🔹 Chat Functions
+function openChat(sellerId, listingId) {
+  currentChatUser = sellerId;
+  currentListingId = listingId;
+  document.getElementById("chat-panel").style.display = "block";
+  loadMessages();
+}
+
+function loadMessages() {
+  const user = auth.currentUser;
+  if (!user || !currentChatUser || !currentListingId) return;
+
+  db.collection("messages")
+    .where("listingId", "==", currentListingId)
+    .where("senderId", "in", [user.uid, currentChatUser])
+    .where("receiverId", "in", [user.uid, currentChatUser])
+    .orderBy("timestamp")
+    .get()
+    .then(snapshot => {
+      const log = document.getElementById("chat-log");
+      log.innerHTML = "";
+      snapshot.forEach(doc => {
+        const msg = doc.data();
+        const sender = msg.senderId === user.uid ? "You" : "Seller";
+        log.innerHTML += `<p><strong>${sender}:</strong> ${msg.message}</p>`;
+      });
+    });
+}
+
+function sendMessage() {
+  const user = auth.currentUser;
+  const text = document.getElementById("chat-input").value.trim();
+  if (!user || !currentChatUser || !currentListingId || !text) return;
+
+  db.collection("messages").add({
+    listingId: currentListingId,
+    senderId: user.uid,
+    receiverId: currentChatUser,
+    message: text,
+    timestamp: Date.now()
+  }).then(() => {
+    document.getElementById("chat-input").value = "";
+    loadMessages();
+  });
+}
