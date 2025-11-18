@@ -21,6 +21,7 @@ body {
   text-align: center;
 }
 
+/* === Glass Effect === */
 .glass {
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(12px);
@@ -60,19 +61,22 @@ textarea {
 }
 
 /* === Buttons === */
-.btn {
+.btn, .back-button {
   background: linear-gradient(to right, #b30000, #660000);
   border: none;
   color: white;
   padding: 12px 20px;
-  margin: 10px;
+  margin: 10px auto;
   border-radius: 30px;
   font-size: 16px;
   cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.btn:hover {
+.btn:hover, .back-button:hover {
   transform: scale(1.05);
   box-shadow: 0 0 10px rgba(255,0,0,0.4);
 }
@@ -126,4 +130,30 @@ textarea {
   font-size: 14px;
   color: #ccc;
   font-style: italic;
+}
+
+/* === Message Cards === */
+.message-card {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 15px;
+  padding: 20px;
+  margin-bottom: 20px;
+  text-align: left;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.message-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 6px 18px rgba(255, 0, 0, 0.3);
+}
+
+.message-card p {
+  margin: 6px 0;
+  color: #f0f0f0;
+}
+
+.message-card strong {
+  color: #ff4d4d;
 }
