@@ -313,3 +313,12 @@ function sendMessage() {
     loadMessages();
   });
 }
+
+auth.onAuthStateChanged(user => {
+  if (user) {
+    loadMarketplace(); // ✅ now currentUser is guaranteed to be ready
+  } else {
+    // Optional: redirect to login if not signed in
+    window.location.href = "index.html";
+  }
+});
