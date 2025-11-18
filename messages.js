@@ -50,7 +50,7 @@ auth.onAuthStateChanged(user => {
             ? listingDoc.data().title || "Untitled Listing"
             : "Unknown Listing";
 
-          // ✅ Use msg.message instead of msg.text
+          // ✅ Using msg.message field
           const messageText = typeof msg.message === "string" && msg.message.trim() !== ""
             ? msg.message
             : "<em>No content</em>";
@@ -93,32 +93,3 @@ auth.onAuthStateChanged(user => {
       container.innerHTML = "<p>Error loading messages.</p>";
     });
 });
-
-// ✅ Example send message function with alert popup
-function sendMessage(receiverId, listingId, messageText) {
-  const user = auth.currentUser;
-  if (!user) {
-    alert("⚠️ You must be signed in to send a message.");
-    return;
-  }
-
-  if (!receiverId || !listingId || !messageText) {
-    alert("⚠️ Please fill in all fields before sending.");
-    return;
-  }
-
-  db.collection("messages").add({
-    senderId: user.uid,
-    receiverId: receiverId,
-    listingId: listingId,
-    message: messageText,
-    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-  })
-  .then(() => {
-    alert("✅ Message sent!"); // 👈 One-line popup
-  })
-  .catch(err => {
-    console.error("Error sending message:", err);
-    alert("❌ Failed to send message.");
-  });
-}
