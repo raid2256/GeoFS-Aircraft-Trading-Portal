@@ -1,3 +1,4 @@
+// Firebase config and initialization
 const firebaseConfig = {
   apiKey: "AIzaSyCAoqttx9CDHI_Chmlr1D-cm20g3dXxGHw",
   authDomain: "geofs-aircraft-t.firebaseapp.com",
@@ -12,6 +13,7 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
+// Load messages for the signed-in user
 auth.onAuthStateChanged(user => {
   if (!user) {
     window.location.href = "index.html";
@@ -91,3 +93,32 @@ auth.onAuthStateChanged(user => {
       container.innerHTML = "<p>Error loading messages.</p>";
     });
 });
+
+// ✅ Example send message function with alert popup
+function sendMessage(receiverId, listingId, messageText) {
+  const user = auth.currentUser;
+  if (!user) {
+    alert("⚠️ You must be signed in to send a message.");
+    return;
+  }
+
+  if (!receiverId || !listingId || !messageText) {
+    alert("⚠️ Please fill in all fields before sending.");
+    return;
+  }
+
+  db.collection("messages").add({
+    senderId: user.uid,
+    receiverId: receiverId,
+    listingId: listingId,
+    message: messageText,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  })
+  .then(() => {
+    alert("✅ Message sent!"); // 👈 One-line popup
+  })
+  .catch(err => {
+    console.error("Error sending message:", err);
+    alert("❌ Failed to send message.");
+  });
+}
