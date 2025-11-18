@@ -1,4 +1,3 @@
-// Firebase config and initialization
 const firebaseConfig = {
   apiKey: "AIzaSyCAoqttx9CDHI_Chmlr1D-cm20g3dXxGHw",
   authDomain: "geofs-aircraft-t.firebaseapp.com",
@@ -13,7 +12,6 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// Load messages for the signed-in user
 auth.onAuthStateChanged(user => {
   if (!user) {
     window.location.href = "index.html";
@@ -50,14 +48,15 @@ auth.onAuthStateChanged(user => {
             ? listingDoc.data().title || "Untitled Listing"
             : "Unknown Listing";
 
-          const messageText = msg.text || "<em>No content</em>";
+          const messageText = typeof msg.text === "string" && msg.text.trim() !== ""
+            ? msg.text
+            : "<em>No content</em>";
 
           let timestamp = "Just now";
           try {
             if (msg.timestamp && typeof msg.timestamp.toDate === "function") {
               timestamp = msg.timestamp.toDate().toLocaleString();
             } else if (msg.timestamp && msg.timestamp.seconds) {
-              // fallback if timestamp is a plain object with seconds
               timestamp = new Date(msg.timestamp.seconds * 1000).toLocaleString();
             }
           } catch (e) {
