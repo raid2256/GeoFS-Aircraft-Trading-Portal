@@ -49,19 +49,30 @@ auth.onAuthStateChanged(user => {
 
 function loadUserAirlines(uid) {
   const airlineSelect = document.getElementById("airline-id");
+  const hubSelect = document.getElementById("hub-selector");
+
   airlineSelect.innerHTML = `<option value="">Select your airline</option>`;
+  hubSelect.innerHTML = `<option value="">Select hub airport</option>`;
 
   db.collection("airlines").where("ownerId", "==", uid).get().then(ownerSnap => {
     ownerSnap.forEach(doc => {
-      const name = doc.data().name || "Unnamed Airline";
+      const data = doc.data();
+      const name = data.name || "Unnamed Airline";
+      const hub = data.hubAirport || "Unknown Hub";
+
       airlineSelect.innerHTML += `<option value="${doc.id}">${name} (Owner)</option>`;
+      hubSelect.innerHTML += `<option value="${hub}">${name} - ${hub}</option>`;
     });
 
     return db.collection("airlines").where("staff", "array-contains", uid).get();
   }).then(staffSnap => {
     staffSnap.forEach(doc => {
-      const name = doc.data().name || "Unnamed Airline";
+      const data = doc.data();
+      const name = data.name || "Unnamed Airline";
+      const hub = data.hubAirport || "Unknown Hub";
+
       airlineSelect.innerHTML += `<option value="${doc.id}">${name} (Staff)</option>`;
+      hubSelect.innerHTML += `<option value="${hub}">${name} - ${hub}</option>`;
     });
 
     if (airlineSelect.options.length === 1) {
@@ -138,9 +149,10 @@ function deleteAccount() {
 function postListing() {
   const user = auth.currentUser;
   const airlineId = document.getElementById("airline-id").value;
+  const hub = document.getElementById("hub-selector").value;
 
-  if (!user || !airlineId) {
-    alert("You must select an airline to post listings.");
+  if (!user || !airlineId || !hub) {
+    alert("You must select an airline and hub to post listings.");
     return;
   }
 
@@ -163,6 +175,7 @@ function postListing() {
     description,
     sellerId: user.uid,
     airlineId,
+    hub,
     sold: false,
     timestamp: Date.now()
   };
@@ -175,6 +188,7 @@ function postListing() {
     document.getElementById("tags").value = "";
     document.getElementById("description").value = "";
     document.getElementById("airline-id").value = "";
+    document.getElementById("hub-selector").value = "";
     document.getElementById("listing-form").style.display = "none";
     loadMarketplace();
   }).catch(err => {
@@ -216,6 +230,20 @@ function loadMarketplace() {
           <p class="tags"><strong>Tags:</strong> ${data.tags && data.tags.length ? data.tags.join(", ") : "—"}</p>
           <p><strong>Seller:</strong> ${sellerName}</p>
           <p><strong>Airline:</strong> ${airlineName}</p>
+          <p><strong>Hub:</strong> ${data.hub || "N/A"}</p>
+          <p><strong>Status:</strong> ${data.sold ? "Sold" : "Available"}</p>
+        `;
+        container.appendChild(card);
+      }).catch(err => {
+        console.error("Error loading listing details:", err);
+        card.innerHTML = `
+          <h3>${data.title} - $${data.price}</h3>
+          <p><strong>Type:</strong> ${data.type}</p>
+          <p><strong>Description:</strong> ${data.description}</p>
+          <p class="tags"><strong>Tags:</strong> ${data.tags && data.tags.length ? data.tags.join(", ") : "—"}</p>
+          <p><strong>Seller:</strong> Unknown</p>
+          <p><strong>Airline:</strong> Unknown</p>
+          <p><strong>Hub:</strong> ${data.hub || "N/A"}</p>
           <p><strong>Status:</strong> ${data.sold ? "Sold" : "Available"}</p>
         `;
         container.appendChild(card);
