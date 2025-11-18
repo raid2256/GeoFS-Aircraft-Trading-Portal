@@ -235,8 +235,18 @@ function loadMarketplace() {
           <p><strong>Airline:</strong> ${airlineName}</p>
           <p><strong>Hub:</strong> ${data.hub || "N/A"}</p>
           <p><strong>Status:</strong> ${data.sold ? "Sold" : "Available"}</p>
-          <button class="btn" onclick="openChat('${data.sellerId}', '${doc.id}')">Contact Seller</button>
         `;
+
+        // ✅ Only show "Contact Seller" if current user is NOT the seller
+        const currentUser = auth.currentUser;
+        if (currentUser && currentUser.uid !== data.sellerId) {
+          const contactBtn = document.createElement("button");
+          contactBtn.className = "btn";
+          contactBtn.textContent = "Contact Seller";
+          contactBtn.onclick = () => openChat(data.sellerId, doc.id);
+          card.appendChild(contactBtn);
+        }
+
         container.appendChild(card);
       }).catch(err => {
         console.error("Error loading listing details:", err);
@@ -258,7 +268,6 @@ function loadMarketplace() {
     container.innerHTML = "<p>Error loading listings.</p>";
   });
 }
-
 // 🔹 Chat Functions
 function openChat(sellerId, listingId) {
   currentChatUser = sellerId;
