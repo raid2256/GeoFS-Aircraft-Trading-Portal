@@ -39,6 +39,9 @@
       <input type="text" id="airline-name-edit" placeholder="Edit Airline Name" />
       <textarea id="airline-description-edit" placeholder="Edit Description"></textarea>
       <button class="btn" onclick="updateAirline()">Update Airline</button>
+
+      <!-- 📬 Messages Button (only for staff or owner) -->
+      <div id="messages-button" style="margin-top:20px;"></div>
     </div>
 
     <div style="margin-top:20px;">
@@ -47,5 +50,27 @@
   </div>
 
   <script src="airline.js"></script>
+  <script>
+    auth.onAuthStateChanged(user => {
+      if (!user) return;
+
+      db.collection("airlines").where("ownerId", "==", user.uid).limit(1).get().then(snapshot => {
+        if (!snapshot.empty) {
+          const airlineDoc = snapshot.docs[0];
+          const data = airlineDoc.data();
+          const isOwner = data.ownerId === user.uid;
+          const isStaff = Array.isArray(data.staff) && data.staff.includes(user.uid);
+
+          if (isOwner || isStaff) {
+            const btn = document.createElement("button");
+            btn.textContent = "📨 View Messages";
+            btn.className = "btn";
+            btn.onclick = () => window.location.href = "messages.html";
+            document.getElementById("messages-button").appendChild(btn);
+          }
+        }
+      });
+    });
+  </script>
 </body>
 </html>
